@@ -15,3 +15,6 @@ class MultiObjectiveOpt(ObjectiveFunction):
 
     def grad_objective(self, w):
         return (1. / self.num_dim) * (self.target - w) + (1. / self.num_dim) * np.ones(self.num_dim)
+
+    def objective_dim(self):
+        return self.num_dim

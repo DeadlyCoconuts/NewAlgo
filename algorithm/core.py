@@ -27,10 +27,10 @@ def run_A2C_GTP(env,
     sim_history = History()
 
     """
-    Initialise the appropriate objective and its gradient for the corresponding reward type
+    Ensure gradient_threshold is well defined
     """
-
-
+    if gradient_threshold is None:
+        gradient_threshold = 1 / np.sqrt()
 
 
 
