@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/A2CGTP.iml" filepath="$PROJECT_DIR$/.idea/A2CGTP.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/NewAlgo.iml" filepath="$PROJECT_DIR$/.idea/NewAlgo.iml" />
     </modules>
   </component>
 </project>
