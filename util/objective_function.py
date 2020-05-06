@@ -12,7 +12,3 @@ class ObjectiveFunction(ABC):
     @abstractmethod
     def grad_objective(self):
         pass
-
-    @abstractmethod
-    def objective_dim(self):
-        pass

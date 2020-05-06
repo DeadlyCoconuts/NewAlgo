@@ -30,7 +30,9 @@ def run_A2C_GTP(env,
     Ensure gradient_threshold is well defined
     """
     if gradient_threshold is None:
-        gradient_threshold = 1 / np.sqrt()
+        gradient_threshold = 1 / np.sqrt(objective.num_dim)
 
-
-
+    """
+    Initialise parameters for reward vector estimator
+    """
+    
