@@ -1,5 +1,9 @@
+import numpy as np
+from .history import History
+
+
 def run_A2C_GTP(env,
-            reward_type,
+            objective,
             gradient_threshold=None,
             uncertain_model=False,
             max_steps=100000,
@@ -18,6 +22,15 @@ def run_A2C_GTP(env,
     """
 
     """
-    
+    Initialise history object to store simulation history
     """
+    sim_history = History()
+
+    """
+    Initialise the appropriate objective and its gradient for the corresponding reward type
+    """
+
+
+
+
 
