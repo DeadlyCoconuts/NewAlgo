@@ -1,5 +1,5 @@
 import numpy as np
-from .history import History
+from util.agent import History
 
 
 def run_A2C_GTP(env,
@@ -35,4 +35,3 @@ def run_A2C_GTP(env,
     """
     Initialise parameters for reward vector estimator
     """
-    
