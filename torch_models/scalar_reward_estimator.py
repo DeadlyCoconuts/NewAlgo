@@ -10,7 +10,7 @@ class ScalarRewardEstimator(nn.Module):
             nn.Linear(num_dim_features, hidden_size),
             nn.ReLU(),
             nn.Linear(hidden_size, num_dim_rewards),
-            nn.Linear(num_dim_rewards, 1)
+            nn.Linear(num_dim_rewards, 1, bias=False)
         )
 
     def forward(self, feature_vector):
@@ -19,7 +19,6 @@ class ScalarRewardEstimator(nn.Module):
 
     def add_grad_objective_weights(self, grad_objective, state_dict):  # adds the grad_objective weights to the last module
         state_dict['estimator.3.weight'] = grad_objective  # really ugly code; really shouldn't be doing this...
-        state_dict['estimator.3.bias'] = torch.zeros(1)  # TODO: think of a way to beautify this
         self.load_state_dict(state_dict)
         return
 
