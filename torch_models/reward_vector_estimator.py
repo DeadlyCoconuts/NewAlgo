@@ -12,6 +12,6 @@ class RewardVectorEstimator(nn.Module):
             nn.Linear(hidden_size, num_dim_rewards)
         )
 
-    def forward(self, reward_vector):
-        reward_estimate = self.estimator(reward_vector)
+    def forward(self, feature_vector):
+        reward_estimate = self.estimator(feature_vector)
         return reward_estimate

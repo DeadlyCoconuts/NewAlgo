@@ -1,6 +1,8 @@
 import numpy as np
-from agent.agent import History
+import torch
+import torch.optim as optim
 from torch_models.reward_vector_estimator import RewardVectorEstimator
+from torch_models.scalar_reward_estimator import ScalarRewardEstimator
 from torch_models.a2c import ActorCritic
 
 
@@ -8,7 +10,7 @@ def run_A2C_GTP(env,
             agent,
             gradient_threshold=None,
             uncertain_model=False,
-            max_steps=100000,
+            max_steps=10,
             verbose=True):
 
     """
@@ -37,11 +39,18 @@ def run_A2C_GTP(env,
         gradient_threshold = 1 / np.sqrt(agent.objective_function.num_dim)
 
     """
-    Initialise parameters for reward vector estimator
+    Initialise parameters for the various parameterised variables
     """
-    reward_vector_estimator = RewardVectorEstimator(num_dim_features, num_dim_rewards, hidden_size=10)
-    scalarised_reward_estimator = RewardVectorEstimator(num_dim_features, num_dim_rewards, hidden_size=10)
-    actor_critic = ActorCritic(num_dim_features, num_dim_rewards, hidden_size=10)
+    use_cuda = torch.cuda.is_available()
+    device = torch.device("cuda" if use_cuda else "cpu")
+
+    reward_vector_estimator = RewardVectorEstimator(num_dim_features, num_dim_rewards, hidden_size=10).to(device)
+    reward_vector_estimator_optimizer = optim.Adam(reward_vector_estimator.parameters())
+
+    scalar_reward_estimator = ScalarRewardEstimator(num_dim_features, num_dim_rewards, hidden_size=10).to(device)
+    scalar_reward_estimator.eval()
+
+    actor_critic = ActorCritic(num_dim_features, num_dim_rewards, hidden_size=10).to(device)
 
     """
     Initialise first step
@@ -60,4 +69,19 @@ def run_A2C_GTP(env,
 
         if verbose:
             print("Epoch {} has begun at time step {}".format(current_epoch, current_time))
+
+        # Calculate gradient of objective function
+        _, grad_objective = agent.get_objectives()
+
+        # Reinitialise the scalar reward approximator
+        reward_vector_estimator_params = reward_vector_estimator.state_dict()
+
+        scalar_reward_estimator.add_grad_objective_weights(grad_objective, reward_vector_estimator_params)
+        scalar_reward_estimator.eval()  # evaluation mode; weights do not changes
+
+        # Reinitialise the actor-critic (policy & value function) approximators
+
+
+
+
 
