@@ -6,9 +6,9 @@ class ObjectiveFunction(ABC):
         super().__init__()
 
     @abstractmethod
-    def objective(self):
-        pass
+    def objective(self, w):
+        return
 
     @abstractmethod
-    def grad_objective(self):
-        pass
+    def grad_objective(self, w):
+        return
