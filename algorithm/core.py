@@ -44,11 +44,12 @@ def run_A2C_GTP(env,
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
 
+    # Train estimator again
     reward_vector_estimator = RewardVectorEstimator(num_dim_features, num_dim_rewards, hidden_size=10).to(device)
-    reward_vector_estimator_optimizer = optim.Adam(reward_vector_estimator.parameters())
+    #reward_vector_estimator_optimizer = optim.Adam(reward_vector_estimator.parameters())
 
     scalar_reward_estimator = ScalarRewardEstimator(num_dim_features, num_dim_rewards, hidden_size=10).to(device)
-    scalar_reward_estimator.eval()
+    scalar_reward_estimator_optimizer = optim.Adam(scalar_reward_estimator.parameters())
 
     actor_critic = ActorCritic(num_dim_features, num_actions, hidden_size=10).to(device)
 

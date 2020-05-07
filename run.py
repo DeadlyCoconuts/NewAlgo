@@ -20,33 +20,45 @@ device = torch.device("cuda" if use_cuda else "cpu")
 model = RewardVectorEstimator(3, 3, 3).to(device)
 target = ScalarRewardEstimator(3, 3, 3).to(device)
 
-target.eval()
-
 model_optimizer = optim.Adam(model.parameters())
+target_optimizer = optim.Adam(target.parameters())
 
-values_a = (torch.rand(10000, 1, 3))  # no * actions * reward_dim
+values_a = (torch.rand(10000, 3))  # no * actions * reward_dim
 values_b = values_a.clone().detach()
 
+grad = torch.rand(3)
+com_b = torch.tensordot(values_b, grad, dims=1)
+
 for i in range(10000):
-    output = model(values_a[i])
-    loss = (output - values_b[i]).pow(2).sum()
-    model_optimizer.zero_grad()
+    output = target(values_a[i])
+    if i < 2500:
+        action = 0
+    elif 2500 <= i < 5000:
+        action = 1
+    elif 5000 <= i < 7500:
+        action = 2
+    elif 7500 <= i:
+        action = 3
+    #print(output.gather(0, torch.tensor([[action, action, action]])))
+    loss = (output[action] - com_b[i]).pow(2).sum()
+    target_optimizer.zero_grad()
     loss.backward()
-    model_optimizer.step()
+    target_optimizer.step()
 
 state_dict = model.state_dict()
-grad = torch.rand(1, 3)
-target.add_grad_objective_weights(grad, state_dict)
+
 test = torch.rand(1, 3)
 
 print(test)
-print(model(test))
+print(torch.tensordot(test, grad, dims=1))
 print(target(test))
 
+"""
 for name, param in target.named_parameters():
     if param.requires_grad:
         print(name)
         print(param.data)
+"""
 
 """
 target = np.array([0, 1, 2])
