@@ -32,8 +32,7 @@ def run_A2C_GTP(env,
     Retrieve essential parameters from the environment
     """
     num_dim_features = env.observation_space.shape[0]
-    #num_dim_rewards = env.reward_range[0].size  # TODO: Find a more robust way to get gym environments to return this value
-    num_dim_rewards = 3  # arbitrary
+    num_dim_rewards = env.unwrapped.reward_dim  # compatibility will break with other envs (must define variable)
     num_actions = env.action_space.n
 
     """
@@ -41,6 +40,11 @@ def run_A2C_GTP(env,
     """
     if gradient_threshold is None:
         gradient_threshold = 1 / np.sqrt(agent.objective_function.num_dim)
+
+    """
+    Initialise features-action counter
+    """
+    features_action_counter_dict = dict()
 
     """
     Initialise parameters for the various parameterised variables
@@ -61,7 +65,10 @@ def run_A2C_GTP(env,
     current_time = 0
     current_epoch = -1  # to be incremented upon entering the loop below
     current_features = env.reset()
+
     agent.feature_list.append(current_features)  # add first set of features
+
+    current_features = torch.tensor(current_features).float()
 
     """
     Actual algorithm 
@@ -78,20 +85,23 @@ def run_A2C_GTP(env,
         _, ref_grad = agent.get_objectives()
 
         # Reinitialise and train the scalar_reward estimator with updated ref_grad
+        scalar_reward_estimator.train()
         scalar_reward_estimator.reset_model()
         scalar_reward_estimator_optimizer = optim.Adam(scalar_reward_estimator.parameters())
 
-        batch = Transition(*zip(*agent.transition_list))
-        features_batch = torch.cat(batch.features).view(-1, num_dim_rewards)
-        action_batch = torch.cat(batch.action)
+        if current_time > 0:
+            batch = Transition(*zip(*agent.transition_list))
+            features_batch = torch.cat(batch.features).view(-1, num_dim_features)
+            action_batch = torch.cat(batch.action)
+            reward_batch = torch.cat(batch.reward)
 
-        for i in range(agent.max_memory_capacity - 1):
-            scalar_reward_estimate = scalar_reward_estimator(features_batch[i].gather(0, action_batch[i]))
-            scalar_reward_actual = np.dot(features_batch[i].clone().detach().numpy(), ref_grad)
-            loss = (scalar_reward_estimate - torch.tensor(scalar_reward_actual).float().unsqueeze(0).detach()).pow(2)
-            scalar_reward_estimator_optimizer.zero_grad()
-            loss.backward()
-            scalar_reward_estimator_optimizer.step()
+            for i in range(len(agent.transition_list)):
+                scalar_reward_estimate = scalar_reward_estimator(features_batch[i]).gather(0, action_batch[i])
+                scalar_reward_actual = np.dot(reward_batch[i].clone().detach().numpy(), ref_grad)
+                loss = (scalar_reward_estimate - torch.tensor(scalar_reward_actual).float().unsqueeze(0).detach()).pow(2)
+                scalar_reward_estimator_optimizer.zero_grad()
+                loss.backward()
+                scalar_reward_estimator_optimizer.step()
 
         scalar_reward_estimator.eval()
 
@@ -107,21 +117,30 @@ def run_A2C_GTP(env,
             policy_dist, value = actor_critic(current_features)
 
             current_action = np.random.choice(num_actions, p=policy_dist.clone().detach().numpy())
-            next_features, reward_vector, done, _ = env.step(current_action)  # TODO: Clean up
 
-            # Store new transition in history  # TODO: Add other history storing steps
+            next_features, reward_vector, done, _ = env.step(current_action)  # TODO: Clean up the step function somehow
+            reward_vector = env.algo_step(current_action)
+
+            if current_time >= (max_time - 1000):
+                env.render()
+
+            # Store new transition in history
             agent.update_history(next_features, current_action, reward_vector)
-            agent.add_transition(torch.tensor(current_features).float(), torch.tensor([[current_action]]),
-                                 torch.tensor(next_features).float(), torch.tensor(reward_vector).float().unsqueeze())
+
+            next_features = torch.tensor(next_features).float()
+
+            agent.add_transition(current_features, torch.tensor([[current_action]]),
+                                 next_features, torch.tensor(reward_vector).float().unsqueeze(0))
 
             # Update actor critic parameters
             log_prob = torch.log(policy_dist[current_action])
             with torch.no_grad():
                 _, new_value = actor_critic(next_features)
-                advantage = reward_vector + gamma * new_value - value
+                scalar_reward_estimate = scalar_reward_estimator(current_features).gather(0, torch.tensor([current_action]))
+                advantage = scalar_reward_estimate + gamma * new_value - value
             actor_loss = (-log_prob * advantage)
             critic_loss = advantage.pow(2)
-            actor_critic_loss = actor_critic + critic_loss  # TODO: Add entropy term?
+            actor_critic_loss = actor_loss + critic_loss  # TODO: Add entropy term?
 
             actor_critic_optimizer.zero_grad()
             actor_critic_loss.backward()
@@ -134,7 +153,6 @@ def run_A2C_GTP(env,
             # Update current step
             current_features = next_features
             current_time += 1
-
 
 
 
