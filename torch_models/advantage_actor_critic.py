@@ -29,4 +29,5 @@ class ActorCritic(nn.Module):
             if isinstance(module, nn.Linear):
                 module.reset_parameters()
 
-        self.actor.apply(weight_reset())
+        self.actor.apply(weight_reset)
+        self.critic.apply(weight_reset)

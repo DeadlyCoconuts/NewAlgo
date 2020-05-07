@@ -15,3 +15,4 @@ class RewardVectorEstimator(nn.Module):
     def forward(self, feature_vector):
         reward_estimate = self.estimator(feature_vector)
         return reward_estimate
+

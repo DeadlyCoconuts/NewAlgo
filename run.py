@@ -3,8 +3,10 @@ import math
 import torch
 import numpy as np
 import torch.optim as optim
+import torch.nn.functional as F
 
 from agent.agent import Agent
+from agent.agent import Transition
 from agent.objective_functions.multi_objective_optimisation import MultiObjectiveOpt
 from algorithm.core import run_A2C_GTP
 from torch_models.reward_vector_estimator import RewardVectorEstimator
@@ -15,44 +17,75 @@ from torch_models.advantage_actor_critic import ActorCritic
 use_cuda = torch.cuda.is_available()
 device = torch.device("cuda" if use_cuda else "cpu")
 
-
-
-model = RewardVectorEstimator(3, 3, 3).to(device)
-target = ScalarRewardEstimator(3, 3, 3).to(device)
-
-model_optimizer = optim.Adam(model.parameters())
+"""
+target = ScalarRewardEstimator(3, 3, 10).to(device)
 target_optimizer = optim.Adam(target.parameters())
+agent = Agent(MultiObjectiveOpt(np.array([0, 1, 2])), 10000)
 
-values_a = (torch.rand(10000, 3))  # no * actions * reward_dim
-values_b = values_a.clone().detach()
+values_a = np.random.rand(10000, 3)  # no * reward_dim
+values_b = values_a.copy()[:9999, :]
 
-grad = torch.rand(3)
-com_b = torch.tensordot(values_b, grad, dims=1)
+grad = np.random.uniform(-1, 1, 3)
+print(grad)
 
-for i in range(10000):
-    output = target(values_a[i])
-    if i < 2500:
+
+for i in range(10000 - 1):
+    if i % 4 == 0:
         action = 0
-    elif 2500 <= i < 5000:
+    elif i % 4 == 1:
         action = 1
-    elif 5000 <= i < 7500:
+        values_b[i] = np.zeros(3)
+    elif i % 4 == 2:
         action = 2
-    elif 7500 <= i:
+    elif i % 4 == 3:
         action = 3
-    #print(output.gather(0, torch.tensor([[action, action, action]])))
-    loss = (output[action] - com_b[i]).pow(2).sum()
+    agent.add_transition(torch.tensor(values_a[i]).float(), torch.tensor([[action]]), torch.tensor(values_a[i+1]).float(),
+                         torch.tensor(0).unsqueeze(0).float())
+
+rewards = np.dot(values_b, grad)[:9999]
+
+print(rewards)
+
+batch = Transition(*zip(*agent.transition_list))
+features_batch = torch.cat(batch.features).view(-1, 3)
+action_batch = torch.cat(batch.action)
+#print(action_batch)
+
+for i in range(10000 - 1):
+    scalar_reward_value = target(features_batch[i]).gather(0, action_batch[i])
+    loss = (scalar_reward_value - torch.tensor(rewards[i]).float().unsqueeze(0).detach()).pow(2)
+    #print(loss)
     target_optimizer.zero_grad()
     loss.backward()
     target_optimizer.step()
 
-state_dict = model.state_dict()
+test = np.random.rand(3)
+test_tensor = torch.tensor(test).float()
 
-test = torch.rand(1, 3)
+print(np.dot(test, grad))
+with torch.no_grad():
+    print(target(test_tensor))
+"""
+"""
+scalar_reward_values = target(features_batch)
+print(scalar_reward_values)
+scalar_reward_values = scalar_reward_values.gather(1, action_batch)
+print(scalar_reward_values)
 
-print(test)
-print(torch.tensordot(test, grad, dims=1))
-print(target(test))
+loss = (scalar_reward_values - reward_batch).pow(2).sum()
+target_optimizer.zero_grad()
+loss.backward()
+target_optimizer.step()
 
+test = np.random.rand(3)
+test_tensor = torch.tensor(test).float()
+
+print(test_tensor)
+print(np.dot(test, grad))
+#print(torch.tensordot(test, torch.tensor(grad).float(), dims=1))
+print(target(test_tensor))
+
+"""
 """
 for name, param in target.named_parameters():
     if param.requires_grad:
@@ -60,28 +93,19 @@ for name, param in target.named_parameters():
         print(param.data)
 """
 
-"""
-target = np.array([0, 1, 2])
 
-env = gym.envs.make('CartPole-v1')
-agent = Agent(MultiObjectiveOpt(target))
-
-#run_A2C_GTP(env, agent)
-"""
-
-"""
 model = ActorCritic(3, 3, 10).to(device)
 values = (torch.rand(10000, 3))
 
 policy_dist, value = model.forward(values[0])
 print(policy_dist)
 
-policy_dist = policy_dist.detach().numpy()
 
-action = np.random.choice(3, p=policy_dist)
-
+action = np.random.choice(3, p=policy_dist.detach().numpy())
+b = torch.log(policy_dist[action])
 print(action)
-"""
+print(b)
+
 
 """
 for i in range(10000):
