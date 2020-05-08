@@ -8,7 +8,7 @@ from torch_models.scalar_reward_estimator import ScalarRewardEstimator
 from torch_models.advantage_actor_critic import ActorCritic
 
 
-def run_A2C_GTP(env,
+def run_a2c_gtp(env,
                 agent,
                 gamma=1,
                 gradient_threshold=None,

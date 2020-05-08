@@ -2,7 +2,7 @@ import os
 from envs.maze_view_2d import Maze
 
 maze_width = 3
-has_loops = True
+has_loops = False
 num_portals = 0
 num_rewards = int(round(maze_width / 3 + 2))
 

@@ -9,7 +9,7 @@ import envs
 from agent.agent import Agent
 from agent.agent import Transition
 from agent.objective_functions.multi_objective_optimisation import MultiObjectiveOpt
-from algorithm.core import run_A2C_GTP
+from algorithm.core import run_a2c_gtp
 from torch_models.reward_vector_estimator import RewardVectorEstimator
 from torch_models.scalar_reward_estimator import ScalarRewardEstimator
 from torch_models.advantage_actor_critic import ActorCritic
@@ -20,16 +20,14 @@ use_cuda = torch.cuda.is_available()
 device = torch.device("cuda" if use_cuda else "cpu")
 
 env = gym.make("maze-preset-3x3-kpi-v0").env
-env = Monitor(env, './video', force=True)
 env.reset()
-env.render()
 
 target = env.unwrapped.target
 print(target)
 
 agent = Agent(MultiObjectiveOpt(target), 10000)
 
-run_A2C_GTP(env, agent, max_time=1000)
+run_a2c_gtp(env, agent, max_time=3000)
 print(agent.avg_reward_list[-1])
 print("sa")
 """
