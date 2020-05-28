@@ -124,13 +124,14 @@ class MazeEnv(gym.Env):
             # set v _mean
             for y in range(0, self.maze_size[0]):
                 for x in range(0, self.maze_size[1]):
+                    state_k = (x, y)
                     state = self.state_to_list_idx[(x, y)]
-                    if (x, y) in self.maze_view.maze.rewards:
+                    if state_k in self.maze_view.maze.rewards:
                         for action in range(4):
-                            self.v_mean[(state, action)] = np.dot(self.transition_p_kernel[(state, action)], target_matrix)
+                            self.v_mean[(state_k, action)] = np.dot(self.transition_p_kernel[(state, action)], target_matrix)
                     else:
                         for action in range(4):
-                            self.v_mean[(state, action)] = np.zeros(self.num_dim)
+                            self.v_mean[(state_k, action)] = np.zeros(self.num_dim)
 
             """
             for state in range(self.maze_size[0] * self.maze_size[1]):

@@ -9,14 +9,18 @@ class ActorCritic(nn.Module):
         self.actor = nn.Sequential(
             nn.Linear(num_features, hidden_size),
             nn.ReLU(),
-            nn.Linear(hidden_size, num_actions),
+            nn.Linear(hidden_size, 20),
+            nn.ReLU(),
+            nn.Linear(20, num_actions),
             nn.Softmax(dim=0)
         )
 
         self.critic = nn.Sequential(
             nn.Linear(num_features, hidden_size),
             nn.ReLU(),
-            nn.Linear(hidden_size, 1)
+            nn.Linear(hidden_size, 10),
+            nn.ReLU(),
+            nn.Linear(10, 1)
         )
 
     def forward(self, feature_vector):

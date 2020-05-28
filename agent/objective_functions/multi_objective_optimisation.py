@@ -1,5 +1,3 @@
-from abc import ABC
-
 import numpy as np
 from .objective_function import ObjectiveFunction
 
@@ -14,4 +12,5 @@ class MultiObjectiveOpt(ObjectiveFunction):
         return - (0.5 / self.num_dim) * np.dot(diff, diff) + (1. / self.num_dim) * np.dot(np.ones(self.num_dim), w)
 
     def grad_objective(self, w):
-        return (1. / self.num_dim) * (self.target - w) + (1. / self.num_dim) * np.ones(self.num_dim)
+        #return (1. / self.num_dim) * (self.target - w) + (1. / self.num_dim) * np.ones(self.num_dim)
+        return (1. / self.num_dim) * (np.ones(self.num_dim) - np.minimum((w - self.target), 0))

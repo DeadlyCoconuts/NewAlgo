@@ -13,7 +13,7 @@ register(
     entry_point='envs:MazeEnvPreset3x3',
     max_episode_steps=1000000,
     kwargs={'reward_type': 'kpi',
-            'random_reward': True}
+            'random_reward': False}
 )
 
 register(  # Random rewards
