@@ -25,7 +25,7 @@ def get_one_hot(coordinates):
     return one_hot[new_cood]
 
 class ActorCriticAlgorithm(object):
-    def __init__(self, env_code, num_dim_features, device, num_steps=100, max_episodes=10, gamma=0.99):
+    def __init__(self, env_code, num_dim_features, device, num_steps=100, max_episodes=350, gamma=0.99):
         self.rewards = None
         self.env = gym.make(env_code).env
 
