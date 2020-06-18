@@ -114,7 +114,8 @@ class MazeEnv(gym.Env):
                         else:
                             reward_vector[idx] = 1
                             idx += 1
-                        reward_vector = reward_vector / np.sum(reward_vector)  # normalise the vector
+                        if idx == 3:
+                            reward_vector = reward_vector / np.sum(reward_vector)  # normalise the vector
                     self.reward_dict[(x, y)] = reward_vector
 
                     # prepare target_vector
@@ -140,7 +141,7 @@ class MazeEnv(gym.Env):
             """
 
             # set target
-            self.target = np.dot(np.ones(self.maze_size[0] * self.maze_size[1]), target_matrix) / (self.num_dim)
+            self.target = np.dot(np.ones(self.maze_size[0] * self.maze_size[1]), target_matrix) / self.num_dim
 
             """
             for reward_location in self.maze_view.maze.rewards:

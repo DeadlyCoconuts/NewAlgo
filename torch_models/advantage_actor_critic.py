@@ -8,18 +8,20 @@ class ActorCritic(nn.Module):
 
         self.actor = nn.Sequential(
             nn.Linear(num_features, hidden_size),
-            nn.ReLU(),
-            nn.Linear(hidden_size, 20),
-            nn.ReLU(),
-            nn.Linear(20, num_actions),
-            nn.Softmax(dim=0)
+            nn.LeakyReLU(),
+            nn.Linear(hidden_size, 30),
+            nn.LeakyReLU(),
+            nn.Linear(30, 20),
+            nn.LeakyReLU(),
+            nn.Linear(20, num_actions)#,
+            #nn.Softmax(dim=-1)
         )
 
         self.critic = nn.Sequential(
             nn.Linear(num_features, hidden_size),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.Linear(hidden_size, 10),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.Linear(10, 1)
         )
 

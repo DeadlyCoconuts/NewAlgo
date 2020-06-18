@@ -30,6 +30,8 @@ class Agent:
     def add_transition(self, *args):
         if len(self.transition_list) < self.max_memory_capacity:
             self.transition_list.append(None)
+            #self.transition_list[self.transition_counter] = Transition(*args)
+            #self.transition_counter += 1
         self.transition_list[self.transition_counter] = Transition(*args)
         self.transition_counter = (self.transition_counter + 1) % self.max_memory_capacity
 
